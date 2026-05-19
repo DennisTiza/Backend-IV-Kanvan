@@ -1,5 +1,7 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
+import {belongsTo, Entity, hasMany, model, property} from '@loopback/repository';
+import {Login} from './login.model';
 import {ProcesoXTarjeta} from './proceso-x-tarjeta.model';
+import {Rol} from './rol.model';
 
 @model()
 export class Usuario extends Entity {
@@ -34,14 +36,14 @@ export class Usuario extends Entity {
   })
   clave: string;
 
-  @property({
-    type: 'string',
-    required: true,
-  })
-  rol: string;
-
   @hasMany(() => ProcesoXTarjeta)
   procesoXTarjetas: ProcesoXTarjeta[];
+
+  @hasMany(() => Login)
+  logins: Login[];
+
+  @belongsTo(() => Rol)
+  rolId: number;
 
   constructor(data?: Partial<Usuario>) {
     super(data);
