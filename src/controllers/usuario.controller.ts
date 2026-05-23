@@ -115,7 +115,22 @@ export class UsuarioController {
     usuario: Usuario,
     @param.where(Usuario) where?: Where<Usuario>,
   ): Promise<Count> {
-    return this.usuarioRepository.updateAll(usuario, where);
+    try {
+      let usuarioExistenteCorreo = await this.usuarioRepository.findOne({
+        where: {correo: usuario.correo, id: {neq: usuario.id}},
+      });
+      if (usuarioExistenteCorreo) {
+        throw new HttpErrors.BadRequest(`El correo '${usuario.correo}' ya se encuentra en uso por otro usuario.`);
+      }
+      try {
+        usuario.clave = this.seguridadUsuarioService.cifrarTexto(usuario.clave);
+      } catch (error) {
+        throw new HttpErrors.InternalServerError('Error al cifrar la clave del usuario.');
+      }
+      return this.usuarioRepository.updateAll(usuario, where);
+    } catch (error) {
+      throw new HttpErrors.InternalServerError('Error al actualizar el usuario.');
+    }
   }
 
   @get('/usuario/{id}')
@@ -149,7 +164,22 @@ export class UsuarioController {
     })
     usuario: Usuario,
   ): Promise<void> {
-    await this.usuarioRepository.updateById(id, usuario);
+    try {
+      let usuarioExistenteCorreo = await this.usuarioRepository.findOne({
+        where: {correo: usuario.correo, id: {neq: usuario.id}},
+      });
+      if (usuarioExistenteCorreo) {
+        throw new HttpErrors.BadRequest(`El correo '${usuario.correo}' ya se encuentra en uso por otro usuario.`);
+      }
+      try {
+        usuario.clave = this.seguridadUsuarioService.cifrarTexto(usuario.clave);
+      } catch (error) {
+        throw new HttpErrors.InternalServerError('Error al cifrar la clave del usuario.');
+      }
+      await this.usuarioRepository.updateById(id, usuario);
+    } catch (error) {
+      throw new HttpErrors.InternalServerError('Error al actualizar el usuario.');
+    }
   }
 
   @put('/usuario/{id}')
