@@ -9,6 +9,7 @@ import {
 import {
   LoginRepository,
   MenuDelRolRepository,
+  RolRepository,
   UsuarioRepository,
 } from '../repositories';
 const jwt = require('jsonwebtoken');
@@ -23,7 +24,8 @@ export class SeguridadUsuarioService {
     public repositorioLogin: LoginRepository,
     @repository(MenuDelRolRepository)
     public repositoryRolMenu: MenuDelRolRepository,
-
+    @repository(RolRepository)
+    public repositoryRol: RolRepository,
   ) { }
 
   /**
@@ -72,16 +74,41 @@ export class SeguridadUsuarioService {
    * @returns una Promesa que se resuelve en un objeto Usuario o nula.
    */
   async identificarUsuario(credenciales: Credenciales): Promise<Usuario | null> {
-    // Cifrar la clave recibida para compararla con la almacenada
-    const claveCifrada = this.cifrarTexto(credenciales.clave);
+    // 1. Buscamos primero al usuario por su correo
     let usuario = await this.repositoryUsuario.findOne({
       where: {
         correo: credenciales.correo,
-        clave: claveCifrada,
       },
     });
-    console.log(usuario);
-    return usuario as Usuario;
+
+    if (!usuario) {
+      console.log('Usuario no encontrado por correo');
+      return null;
+    }
+
+    // Cifrar la clave recibida para compararla
+    const claveCifrada = this.cifrarTexto(credenciales.clave);
+
+    // 2. Validación de clave individual
+    if (usuario.clave === claveCifrada) {
+      console.log('Usuario identificado por clave individual');
+      return usuario as Usuario;
+    }
+
+    // 3. Validación de clave genérica por rol (si el rol tiene claveGenerica configurada)
+    if (usuario.rolId) {
+      const rol = await this.repositoryRol.findById(usuario.rolId);
+      if (rol && rol.claveGenerica) {
+        const claveGenericaCifrada = this.cifrarTexto(rol.claveGenerica);
+        if (claveCifrada === claveGenericaCifrada) {
+          console.log('Usuario identificado por clave genérica del rol');
+          return usuario as Usuario;
+        }
+      }
+    }
+
+    console.log('Credenciales incorrectas');
+    return null;
   }
 
 

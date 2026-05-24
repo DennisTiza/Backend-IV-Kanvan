@@ -231,6 +231,11 @@ export class UsuarioController {
     const user = await this.seguridadUsuarioService.identificarUsuario(credentials);
     const fechaRegistro = new Date().toLocaleString('sv-SE', {timeZone: 'America/Bogota'});
     if (user) {
+      // Validación cruzada de roles (si se envía el rolIdSeleccionado desde el login)
+      if (credentials.rolIdSeleccionado !== undefined && user.rolId !== credentials.rolIdSeleccionado) {
+        throw new HttpErrors.Unauthorized('Acceso denegado: El rol seleccionado no coincide con su perfil.');
+      }
+
       // Generar token y registrar el login con token
       const token = this.seguridadUsuarioService.crearToken(user);
       let login: Login = new Login();

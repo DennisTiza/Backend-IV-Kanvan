@@ -14,6 +14,12 @@ export class Credenciales extends Model {
   })
   clave: string;
 
+  @property({
+    type: 'number',
+    required: false,
+  })
+  rolIdSeleccionado?: number;
+
 
   constructor(data?: Partial<Credenciales>) {
     super(data);

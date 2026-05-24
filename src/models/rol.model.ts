@@ -24,6 +24,12 @@ export class Rol extends Entity {
   })
   Comentario: string;
 
+  @property({
+    type: 'string',
+    required: false,
+  })
+  claveGenerica?: string;
+
   @hasMany(() => Menu, {through: {model: () => MenuDelRol}})
   menus: Menu[];
 
