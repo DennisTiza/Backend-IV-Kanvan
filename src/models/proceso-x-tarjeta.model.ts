@@ -1,8 +1,8 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Proceso} from './proceso.model';
-import {Usuario} from './usuario.model';
-import {TarjetaDeProduccion} from './tarjeta-de-produccion.model';
+import {belongsTo, Entity, model, property} from '@loopback/repository';
 import {CodigoDeError} from './codigo-de-error.model';
+import {Operario} from './operario.model';
+import {Proceso} from './proceso.model';
+import {TarjetaDeProduccion} from './tarjeta-de-produccion.model';
 
 @model()
 export class ProcesoXTarjeta extends Entity {
@@ -32,8 +32,9 @@ export class ProcesoXTarjeta extends Entity {
   @belongsTo(() => Proceso)
   procesoId: number;
 
-  @belongsTo(() => Usuario)
-  usuarioId: number;
+
+  @belongsTo(() => Operario)
+  operarioId: number;
 
   @belongsTo(() => TarjetaDeProduccion)
   tarjetaDeProduccionId: number;

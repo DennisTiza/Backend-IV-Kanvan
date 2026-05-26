@@ -1,6 +1,6 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Producto} from './producto.model';
+import {belongsTo, Entity, model, property} from '@loopback/repository';
 import {Proceso} from './proceso.model';
+import {Producto} from './producto.model';
 
 @model()
 export class ProductoXProceso extends Entity {
@@ -22,6 +22,12 @@ export class ProductoXProceso extends Entity {
     required: true,
   })
   tiempo: number;
+
+  @property({
+    type: 'number',
+    required: true,
+  })
+  orden: number;
 
   @belongsTo(() => Producto)
   productoId: number;

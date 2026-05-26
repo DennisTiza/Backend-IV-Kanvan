@@ -3,7 +3,6 @@ import {BelongsToAccessor, DefaultCrudRepository, HasManyRepositoryFactory, repo
 import {MysqlDataSource} from '../datasources';
 import {Login, ProcesoXTarjeta, Rol, Usuario, UsuarioRelations} from '../models';
 import {LoginRepository} from './login.repository';
-import {ProcesoXTarjetaRepository} from './proceso-x-tarjeta.repository';
 import {RolRepository} from './rol.repository';
 
 export class UsuarioRepository extends DefaultCrudRepository<
@@ -16,11 +15,9 @@ export class UsuarioRepository extends DefaultCrudRepository<
   public readonly procesoXTarjetas: HasManyRepositoryFactory<ProcesoXTarjeta, typeof Usuario.prototype.id>;
 
   constructor(
-    @inject('datasources.mysql') dataSource: MysqlDataSource, @repository.getter('ProcesoXTarjetaRepository') protected procesoXTarjetaRepositoryGetter: Getter<ProcesoXTarjetaRepository>, @repository.getter('RolRepository') protected rolRepositoryGetter: Getter<RolRepository>, @repository.getter('LoginRepository') protected loginRepositoryGetter: Getter<LoginRepository>,
+    @inject('datasources.mysql') dataSource: MysqlDataSource, @repository.getter('RolRepository') protected rolRepositoryGetter: Getter<RolRepository>, @repository.getter('LoginRepository') protected loginRepositoryGetter: Getter<LoginRepository>,
   ) {
     super(Usuario, dataSource);
-    this.procesoXTarjetas = this.createHasManyRepositoryFactoryFor('procesoXTarjetas', procesoXTarjetaRepositoryGetter,);
-    this.registerInclusionResolver('procesoXTarjetas', this.procesoXTarjetas.inclusionResolver);
     this.rol = this.createBelongsToAccessorFor('rol', rolRepositoryGetter,);
     this.registerInclusionResolver('rol', this.rol.inclusionResolver);
     this.logins = this.createHasManyRepositoryFactoryFor('logins', loginRepositoryGetter,);

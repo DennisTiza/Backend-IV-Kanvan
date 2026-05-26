@@ -12,3 +12,4 @@ export * from './rol.model';
 export * from './tarjeta-de-produccion.model';
 export * from './usuario.model';
 
+export * from './operario.model';
