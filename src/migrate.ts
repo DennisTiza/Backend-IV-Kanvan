@@ -1,4 +1,7 @@
+import dotenv from 'dotenv';
 import {BackendIvKanvanApplication} from './application';
+
+dotenv.config();
 
 export async function migrate(args: string[]) {
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';

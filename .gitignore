@@ -65,3 +65,8 @@ typings/
 
 # Emacs auto-save file
 \#*#
+
+.opencode
+.github
+.agent
+openspec
