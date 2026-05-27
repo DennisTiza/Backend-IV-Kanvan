@@ -7,13 +7,13 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
@@ -23,8 +23,8 @@ import {ProductoXProcesoRepository} from '../repositories';
 export class ProductoXProcesoController {
   constructor(
     @repository(ProductoXProcesoRepository)
-    public productoXProcesoRepository : ProductoXProcesoRepository,
-  ) {}
+    public productoXProcesoRepository: ProductoXProcesoRepository,
+  ) { }
 
   @post('/producto-x-proceso')
   @response(200, {
@@ -76,6 +76,24 @@ export class ProductoXProcesoController {
     return this.productoXProcesoRepository.find(filter);
   }
 
+  @get('/producto-x-proceso/producto/{productoId}')
+  @response(200, {
+    description: 'Array of ProductoXProceso model instances for a productoId',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(ProductoXProceso, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async findByProductoId(
+    @param.path.number('productoId') productoId: number,
+  ): Promise<ProductoXProceso[]> {
+    return this.productoXProcesoRepository.find({where: {productoId}});
+  }
+
   @patch('/producto-x-proceso')
   @response(200, {
     description: 'ProductoXProceso PATCH success count',
@@ -110,6 +128,8 @@ export class ProductoXProcesoController {
   ): Promise<ProductoXProceso> {
     return this.productoXProcesoRepository.findById(id, filter);
   }
+
+
 
   @patch('/producto-x-proceso/{id}')
   @response(204, {
