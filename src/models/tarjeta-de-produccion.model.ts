@@ -1,5 +1,6 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Entity, model, property, hasMany, belongsTo} from '@loopback/repository';
 import {ProcesoXTarjeta} from './proceso-x-tarjeta.model';
+import {Producto} from './producto.model';
 
 @model()
 export class TarjetaDeProduccion extends Entity {
@@ -44,6 +45,9 @@ export class TarjetaDeProduccion extends Entity {
   })
   estado: string;
 
+  @belongsTo(() => Producto)
+  productoId: number;
+
   @hasMany(() => ProcesoXTarjeta)
   procesoXTarjetas: ProcesoXTarjeta[];
 
@@ -57,3 +61,4 @@ export interface TarjetaDeProduccionRelations {
 }
 
 export type TarjetaDeProduccionWithRelations = TarjetaDeProduccion & TarjetaDeProduccionRelations;
+

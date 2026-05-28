@@ -1,12 +1,12 @@
 export * from './codigo-de-error-proceso-x-tarjeta.controller';
+export * from './proceso-x-tarjeta-usuario.controller';
+export * from './tarjeta-de-produccion-producto.controller';
+export * from './usuario-proceso-x-tarjeta.controller';
 export * from './codigo-de-error.controller';
-export * from './operario-proceso-x-tarjeta.controller';
-export * from './operario.controller';
 export * from './ping.controller';
 export * from './proceso-proceso-x-tarjeta.controller';
 export * from './proceso-producto-x-proceso.controller';
 export * from './proceso-x-tarjeta-codigo-de-error.controller';
-export * from './proceso-x-tarjeta-operario.controller';
 export * from './proceso-x-tarjeta-proceso.controller';
 export * from './proceso-x-tarjeta-tarjeta-de-produccion.controller';
 export * from './proceso.controller';
@@ -19,4 +19,5 @@ export * from './rol.controller';
 export * from './tarjeta-de-produccion-proceso-x-tarjeta.controller';
 export * from './tarjeta-de-produccion.controller';
 export * from './usuario.controller';
+
 

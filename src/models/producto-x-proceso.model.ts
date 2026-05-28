@@ -15,18 +15,6 @@ export class ProductoXProceso extends Entity {
     type: 'number',
     required: true,
   })
-  cantidad: number;
-
-  @property({
-    type: 'number',
-    required: true,
-  })
-  tiempo: number;
-
-  @property({
-    type: 'number',
-    required: true,
-  })
   orden: number;
 
   @belongsTo(() => Producto)

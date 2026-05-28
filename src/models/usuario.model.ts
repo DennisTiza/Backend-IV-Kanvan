@@ -1,5 +1,6 @@
 import {belongsTo, Entity, hasMany, model, property} from '@loopback/repository';
 import {Login} from './login.model';
+import {ProcesoXTarjeta} from './proceso-x-tarjeta.model';
 import {Rol} from './rol.model';
 
 @model()
@@ -39,6 +40,9 @@ export class Usuario extends Entity {
   @hasMany(() => Login)
   logins: Login[];
 
+  @hasMany(() => ProcesoXTarjeta)
+  procesoXTarjetas: ProcesoXTarjeta[];
+
   @belongsTo(() => Rol)
   rolId: number;
 
@@ -52,3 +56,5 @@ export interface UsuarioRelations {
 }
 
 export type UsuarioWithRelations = Usuario & UsuarioRelations;
+
+

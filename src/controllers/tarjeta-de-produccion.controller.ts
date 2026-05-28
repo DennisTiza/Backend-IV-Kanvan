@@ -17,13 +17,17 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {TarjetaDeProduccion} from '../models';
-import {TarjetaDeProduccionRepository} from '../repositories';
+import {ProcesoXTarjeta, TarjetaDeProduccion} from '../models';
+import {ProductoXProcesoRepository, ProcesoXTarjetaRepository, TarjetaDeProduccionRepository} from '../repositories';
 
 export class TarjetaDeProduccionController {
   constructor(
     @repository(TarjetaDeProduccionRepository)
     public tarjetaDeProduccionRepository : TarjetaDeProduccionRepository,
+    @repository(ProductoXProcesoRepository)
+    public productoXProcesoRepository : ProductoXProcesoRepository,
+    @repository(ProcesoXTarjetaRepository)
+    public procesoXTarjetaRepository : ProcesoXTarjetaRepository,
   ) {}
 
   @post('/tarjeta-de-produccion')
@@ -44,7 +48,23 @@ export class TarjetaDeProduccionController {
     })
     tarjetaDeProduccion: Omit<TarjetaDeProduccion, 'id'>,
   ): Promise<TarjetaDeProduccion> {
-    return this.tarjetaDeProduccionRepository.create(tarjetaDeProduccion);
+    const tarjeta = await this.tarjetaDeProduccionRepository.create(tarjetaDeProduccion);
+
+    if (tarjeta.productoId) {
+      const procesosDeProducto = await this.productoXProcesoRepository.find({
+        where: {productoId: tarjeta.productoId},
+        order: ['orden ASC'],
+      });
+
+      for (const pp of procesosDeProducto) {
+        await this.procesoXTarjetaRepository.create({
+          procesoId: pp.procesoId,
+          tarjetaDeProduccionId: tarjeta.id,
+        } as ProcesoXTarjeta);
+      }
+    }
+
+    return tarjeta;
   }
 
   @get('/tarjeta-de-produccion/count')

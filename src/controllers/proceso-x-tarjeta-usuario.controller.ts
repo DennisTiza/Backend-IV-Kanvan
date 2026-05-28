@@ -8,31 +8,31 @@ import {
 } from '@loopback/rest';
 import {
   ProcesoXTarjeta,
-  Operario,
+  Usuario,
 } from '../models';
 import {ProcesoXTarjetaRepository} from '../repositories';
 
-export class ProcesoXTarjetaOperarioController {
+export class ProcesoXTarjetaUsuarioController {
   constructor(
     @repository(ProcesoXTarjetaRepository)
     public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
   ) { }
 
-  @get('/proceso-x-tarjetas/{id}/operario', {
+  @get('/proceso-x-tarjetas/{id}/usuario', {
     responses: {
       '200': {
-        description: 'Operario belonging to ProcesoXTarjeta',
+        description: 'Usuario belonging to ProcesoXTarjeta',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Operario),
+            schema: getModelSchemaRef(Usuario),
           },
         },
       },
     },
   })
-  async getOperario(
+  async getUsuario(
     @param.path.number('id') id: typeof ProcesoXTarjeta.prototype.id,
-  ): Promise<Operario> {
-    return this.procesoXTarjetaRepository.operario(id);
+  ): Promise<Usuario> {
+    return this.procesoXTarjetaRepository.usuario(id);
   }
 }
