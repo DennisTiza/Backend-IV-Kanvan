@@ -4,6 +4,7 @@ export * from './credenciales.model';
 export * from './login.model';
 export * from './menu-del-rol.model';
 export * from './menu.model';
+export * from './operario.model';
 export * from './proceso-x-tarjeta.model';
 export * from './proceso.model';
 export * from './producto-x-proceso.model';

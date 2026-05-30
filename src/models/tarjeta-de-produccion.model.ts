@@ -1,4 +1,4 @@
-import {Entity, model, property, hasMany, belongsTo} from '@loopback/repository';
+import {belongsTo, Entity, hasMany, model, property} from '@loopback/repository';
 import {ProcesoXTarjeta} from './proceso-x-tarjeta.model';
 import {Producto} from './producto.model';
 
@@ -22,6 +22,12 @@ export class TarjetaDeProduccion extends Entity {
     required: true,
   })
   cantidad: number;
+
+  @property({
+    type: 'date',
+    required: true,
+  })
+  fechaPlaneada: Date;
 
   @property({
     type: 'string',

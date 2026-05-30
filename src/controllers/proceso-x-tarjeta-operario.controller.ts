@@ -2,37 +2,37 @@ import {
   repository,
 } from '@loopback/repository';
 import {
-  param,
   get,
   getModelSchemaRef,
+  param,
 } from '@loopback/rest';
 import {
+  Operario,
   ProcesoXTarjeta,
-  Usuario,
 } from '../models';
 import {ProcesoXTarjetaRepository} from '../repositories';
 
-export class ProcesoXTarjetaUsuarioController {
+export class ProcesoXTarjetaOperarioController {
   constructor(
     @repository(ProcesoXTarjetaRepository)
     public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
   ) { }
 
-  @get('/proceso-x-tarjetas/{id}/usuario', {
+  @get('/proceso-x-tarjetas/{id}/operario', {
     responses: {
       '200': {
-        description: 'Usuario belonging to ProcesoXTarjeta',
+        description: 'Operario belonging to ProcesoXTarjeta',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Usuario),
+            schema: getModelSchemaRef(Operario),
           },
         },
       },
     },
   })
-  async getUsuario(
+  async getOperario(
     @param.path.number('id') id: typeof ProcesoXTarjeta.prototype.id,
-  ): Promise<Usuario> {
-    return this.procesoXTarjetaRepository.usuario(id);
+  ): Promise<Operario> {
+    return this.procesoXTarjetaRepository.operario(id);
   }
 }

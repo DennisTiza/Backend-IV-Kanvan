@@ -16,20 +16,20 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {
-  Usuario,
+  Operario,
   ProcesoXTarjeta,
 } from '../models';
-import {UsuarioRepository} from '../repositories';
+import {OperarioRepository} from '../repositories';
 
-export class UsuarioProcesoXTarjetaController {
+export class OperarioProcesoXTarjetaController {
   constructor(
-    @repository(UsuarioRepository) protected usuarioRepository: UsuarioRepository,
+    @repository(OperarioRepository) protected operarioRepository: OperarioRepository,
   ) { }
 
-  @get('/usuarios/{id}/proceso-x-tarjetas', {
+  @get('/operarios/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'Array of Usuario has many ProcesoXTarjeta',
+        description: 'Array of Operario has many ProcesoXTarjeta',
         content: {
           'application/json': {
             schema: {type: 'array', items: getModelSchemaRef(ProcesoXTarjeta)},
@@ -42,38 +42,38 @@ export class UsuarioProcesoXTarjetaController {
     @param.path.number('id') id: number,
     @param.query.object('filter') filter?: Filter<ProcesoXTarjeta>,
   ): Promise<ProcesoXTarjeta[]> {
-    return this.usuarioRepository.procesoXTarjetas(id).find(filter);
+    return this.operarioRepository.procesoXTarjetas(id).find(filter);
   }
 
-  @post('/usuarios/{id}/proceso-x-tarjetas', {
+  @post('/operarios/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'Usuario model instance',
+        description: 'Operario model instance',
         content: {'application/json': {schema: getModelSchemaRef(ProcesoXTarjeta)}},
       },
     },
   })
   async create(
-    @param.path.number('id') id: typeof Usuario.prototype.id,
+    @param.path.number('id') id: typeof Operario.prototype.id,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(ProcesoXTarjeta, {
-            title: 'NewProcesoXTarjetaInUsuario',
+            title: 'NewProcesoXTarjetaInOperario',
             exclude: ['id'],
-            optional: ['usuarioId']
+            optional: ['operarioId']
           }),
         },
       },
     }) procesoXTarjeta: Omit<ProcesoXTarjeta, 'id'>,
   ): Promise<ProcesoXTarjeta> {
-    return this.usuarioRepository.procesoXTarjetas(id).create(procesoXTarjeta);
+    return this.operarioRepository.procesoXTarjetas(id).create(procesoXTarjeta);
   }
 
-  @patch('/usuarios/{id}/proceso-x-tarjetas', {
+  @patch('/operarios/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'Usuario.ProcesoXTarjeta PATCH success count',
+        description: 'Operario.ProcesoXTarjeta PATCH success count',
         content: {'application/json': {schema: CountSchema}},
       },
     },
@@ -90,13 +90,13 @@ export class UsuarioProcesoXTarjetaController {
     procesoXTarjeta: Partial<ProcesoXTarjeta>,
     @param.query.object('where', getWhereSchemaFor(ProcesoXTarjeta)) where?: Where<ProcesoXTarjeta>,
   ): Promise<Count> {
-    return this.usuarioRepository.procesoXTarjetas(id).patch(procesoXTarjeta, where);
+    return this.operarioRepository.procesoXTarjetas(id).patch(procesoXTarjeta, where);
   }
 
-  @del('/usuarios/{id}/proceso-x-tarjetas', {
+  @del('/operarios/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'Usuario.ProcesoXTarjeta DELETE success count',
+        description: 'Operario.ProcesoXTarjeta DELETE success count',
         content: {'application/json': {schema: CountSchema}},
       },
     },
@@ -105,6 +105,6 @@ export class UsuarioProcesoXTarjetaController {
     @param.path.number('id') id: number,
     @param.query.object('where', getWhereSchemaFor(ProcesoXTarjeta)) where?: Where<ProcesoXTarjeta>,
   ): Promise<Count> {
-    return this.usuarioRepository.procesoXTarjetas(id).delete(where);
+    return this.operarioRepository.procesoXTarjetas(id).delete(where);
   }
 }
