@@ -22,3 +22,4 @@ export * from './tarjeta-de-produccion.controller';
 export * from './usuario.controller';
 
 
+export * from './proceso-x-tarjeta.controller';

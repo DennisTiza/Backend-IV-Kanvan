@@ -29,6 +29,11 @@ export class ProcesoXTarjeta extends Entity {
   })
   fechaFinal: string;
 
+  @property({
+    type: 'number',
+  })
+  tiempo: number;
+
   @belongsTo(() => Proceso)
   procesoId: number;
 

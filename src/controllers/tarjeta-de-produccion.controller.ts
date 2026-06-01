@@ -7,28 +7,28 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
 import {ProcesoXTarjeta, TarjetaDeProduccion} from '../models';
-import {ProductoXProcesoRepository, ProcesoXTarjetaRepository, TarjetaDeProduccionRepository} from '../repositories';
+import {ProcesoXTarjetaRepository, ProductoXProcesoRepository, TarjetaDeProduccionRepository} from '../repositories';
 
 export class TarjetaDeProduccionController {
   constructor(
     @repository(TarjetaDeProduccionRepository)
-    public tarjetaDeProduccionRepository : TarjetaDeProduccionRepository,
+    public tarjetaDeProduccionRepository: TarjetaDeProduccionRepository,
     @repository(ProductoXProcesoRepository)
-    public productoXProcesoRepository : ProductoXProcesoRepository,
+    public productoXProcesoRepository: ProductoXProcesoRepository,
     @repository(ProcesoXTarjetaRepository)
-    public procesoXTarjetaRepository : ProcesoXTarjetaRepository,
-  ) {}
+    public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
+  ) { }
 
   @post('/tarjeta-de-produccion')
   @response(200, {
@@ -41,14 +41,20 @@ export class TarjetaDeProduccionController {
         'application/json': {
           schema: getModelSchemaRef(TarjetaDeProduccion, {
             title: 'NewTarjetaDeProduccion',
-            exclude: ['id'],
+            exclude: ['id', 'estado'],
           }),
         },
       },
     })
     tarjetaDeProduccion: Omit<TarjetaDeProduccion, 'id'>,
   ): Promise<TarjetaDeProduccion> {
-    const tarjeta = await this.tarjetaDeProduccionRepository.create(tarjetaDeProduccion);
+
+    // Ignora cualquier estado que envíe el cliente
+    tarjetaDeProduccion.estado = 'por_hacer';
+
+    const tarjeta = await this.tarjetaDeProduccionRepository.create(
+      tarjetaDeProduccion,
+    );
 
     if (tarjeta.productoId) {
       const procesosDeProducto = await this.productoXProcesoRepository.find({
@@ -64,6 +70,7 @@ export class TarjetaDeProduccionController {
       }
     }
 
+    console.log('Tarjeta de producción creada con ID:', tarjeta);
     return tarjeta;
   }
 
