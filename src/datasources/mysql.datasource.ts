@@ -10,7 +10,7 @@ const config = {
   user: process.env.USUARIO,
   password: process.env.CLAVE,
   database: process.env.NOMBREBASE,
-  timezone: '-05:00',
+  timezone: 'Z',
 };
 
 // Observe application's life cycle to disconnect the datasource when

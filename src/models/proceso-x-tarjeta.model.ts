@@ -19,7 +19,7 @@ export class ProcesoXTarjeta extends Entity {
       dataType: 'datetime',
     },
   })
-  fechaInicio: string;
+  fechaInicio?: string;
 
   @property({
     type: 'string',
@@ -33,6 +33,12 @@ export class ProcesoXTarjeta extends Entity {
     type: 'number',
   })
   tiempo: number;
+
+  @property({
+    type: 'number',
+    required: true,
+  })
+  orden: number;
 
   @belongsTo(() => Proceso)
   procesoId: number;

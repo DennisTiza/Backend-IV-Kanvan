@@ -16,14 +16,17 @@ import {
   put,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
-import {ProcesoXTarjeta} from '../models';
-import {ProcesoXTarjetaRepository} from '../repositories';
+import {ProcesoXTarjeta, TarjetaDeProduccion} from '../models';
+import {ProcesoXTarjetaRepository, TarjetaDeProduccionRepository} from '../repositories';
 
 export class ProcesoXTarjetaController {
   constructor(
     @repository(ProcesoXTarjetaRepository)
     public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
+    @repository(TarjetaDeProduccionRepository)
+    public tarjetaDeProduccionRepository: TarjetaDeProduccionRepository,
   ) { }
 
   @post('/proceso-x-tarjeta')
@@ -114,7 +117,108 @@ export class ProcesoXTarjetaController {
       where: {
         tarjetaDeProduccionId: tarjetaId,
       },
+      order: ['orden ASC'],
     });
+  }
+
+  @post('/proceso-x-tarjeta/{id}/iniciar')
+  @response(200, {
+    description: 'ProcesoXTarjeta iniciado',
+    content: {'application/json': {schema: getModelSchemaRef(ProcesoXTarjeta)}},
+  })
+  async iniciar(
+    @param.path.number('id') id: number,
+  ): Promise<ProcesoXTarjeta> {
+    const proceso = await this.procesoXTarjetaRepository.findById(id);
+    if (!proceso) {
+      throw new HttpErrors.NotFound('Proceso no encontrado');
+    }
+    if (proceso.fechaInicio) {
+      throw new HttpErrors.Conflict('El proceso ya fue iniciado');
+    }
+
+    const hermanos = await this.procesoXTarjetaRepository.find({
+      where: {tarjetaDeProduccionId: proceso.tarjetaDeProduccionId},
+      order: ['orden ASC'],
+    });
+    const idx = hermanos.findIndex(p => p.id === id);
+    if (idx > 0) {
+      const anterior = hermanos[idx - 1];
+      if (!anterior.fechaFinal) {
+        throw new HttpErrors.Conflict(
+          'El proceso anterior no ha finalizado',
+        );
+      }
+    }
+
+    proceso.fechaInicio = new Date().toISOString().replace('T', ' ').replace('Z', '');
+    await this.procesoXTarjetaRepository.updateById(id, {
+      fechaInicio: proceso.fechaInicio,
+    });
+
+    if (idx === 0) {
+      await this.tarjetaDeProduccionRepository.updateById(
+        proceso.tarjetaDeProduccionId,
+        {estado: 'en_proceso'},
+      );
+    }
+
+    return this.procesoXTarjetaRepository.findById(id);
+  }
+
+  @post('/proceso-x-tarjeta/{id}/finalizar')
+  @response(200, {
+    description: 'ProcesoXTarjeta finalizado',
+    content: {'application/json': {schema: getModelSchemaRef(ProcesoXTarjeta)}},
+  })
+  async finalizar(
+    @param.path.number('id') id: number,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              codigoDeErrorId: {type: 'number'},
+            },
+          },
+        },
+      },
+    })
+    body: {codigoDeErrorId?: number},
+  ): Promise<ProcesoXTarjeta> {
+    const proceso = await this.procesoXTarjetaRepository.findById(id);
+    if (!proceso) {
+      throw new HttpErrors.NotFound('Proceso no encontrado');
+    }
+    if (!proceso.fechaInicio) {
+      throw new HttpErrors.Conflict('El proceso no ha sido iniciado');
+    }
+    if (proceso.fechaFinal) {
+      throw new HttpErrors.Conflict('El proceso ya fue finalizado');
+    }
+
+    const updateData: Partial<ProcesoXTarjeta> = {
+      fechaFinal: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+    };
+    if (body.codigoDeErrorId != null) {
+      updateData.codigoDeErrorId = body.codigoDeErrorId;
+    }
+
+    await this.procesoXTarjetaRepository.updateById(id, updateData);
+
+    const todos = await this.procesoXTarjetaRepository.find({
+      where: {tarjetaDeProduccionId: proceso.tarjetaDeProduccionId},
+    });
+    const todosFinalizados = todos.every(p => p.fechaFinal);
+    if (todosFinalizados) {
+      await this.tarjetaDeProduccionRepository.updateById(
+        proceso.tarjetaDeProduccionId,
+        {estado: 'finalizada'},
+      );
+    }
+
+    return this.procesoXTarjetaRepository.findById(id);
   }
 
   @get('/proceso-x-tarjeta/{id}')
