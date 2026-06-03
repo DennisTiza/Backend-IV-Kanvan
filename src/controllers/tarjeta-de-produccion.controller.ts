@@ -66,6 +66,7 @@ export class TarjetaDeProduccionController {
         await this.procesoXTarjetaRepository.create({
           procesoId: pp.procesoId,
           tarjetaDeProduccionId: tarjeta.id,
+          orden: pp.orden,
         } as ProcesoXTarjeta);
       }
     }
