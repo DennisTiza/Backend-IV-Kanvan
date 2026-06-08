@@ -1,8 +1,8 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Entity, hasMany, model, property} from '@loopback/repository';
 import {ProcesoXTarjeta} from './proceso-x-tarjeta.model';
 
 @model()
-export class CodigoDeError extends Entity {
+export class CodigoDeParada extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -25,13 +25,13 @@ export class CodigoDeError extends Entity {
   @hasMany(() => ProcesoXTarjeta)
   procesoXTarjetas: ProcesoXTarjeta[];
 
-  constructor(data?: Partial<CodigoDeError>) {
+  constructor(data?: Partial<CodigoDeParada>) {
     super(data);
   }
 }
 
-export interface CodigoDeErrorRelations {
+export interface CodigoDeParadaRelations {
   // describe navigational properties here
 }
 
-export type CodigoDeErrorWithRelations = CodigoDeError & CodigoDeErrorRelations;
+export type CodigoDeParadaWithRelations = CodigoDeParada & CodigoDeParadaRelations;

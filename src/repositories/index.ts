@@ -1,4 +1,4 @@
-export * from './codigo-de-error.repository';
+export * from './codigo-de-parada.repository';
 export * from './login.repository';
 export * from './menu-del-rol.repository';
 export * from './menu.repository';
@@ -12,3 +12,4 @@ export * from './tarjeta-de-produccion.repository';
 export * from './usuario.repository';
 
 export * from './operario-x-proceso-x-tarjeta.repository';
+

@@ -2,37 +2,37 @@ import {
   repository,
 } from '@loopback/repository';
 import {
-  param,
   get,
   getModelSchemaRef,
+  param,
 } from '@loopback/rest';
 import {
+  CodigoDeParada,
   ProcesoXTarjeta,
-  CodigoDeError,
 } from '../models';
 import {ProcesoXTarjetaRepository} from '../repositories';
 
-export class ProcesoXTarjetaCodigoDeErrorController {
+export class ProcesoXTarjetaCodigoDeParadaController {
   constructor(
     @repository(ProcesoXTarjetaRepository)
     public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
   ) { }
 
-  @get('/proceso-x-tarjetas/{id}/codigo-de-error', {
+  @get('/proceso-x-tarjetas/{id}/codigo-de-parada', {
     responses: {
       '200': {
-        description: 'CodigoDeError belonging to ProcesoXTarjeta',
+        description: 'CodigoDeParada belonging to ProcesoXTarjeta',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(CodigoDeError),
+            schema: getModelSchemaRef(CodigoDeParada),
           },
         },
       },
     },
   })
-  async getCodigoDeError(
+  async getCodigoDeParada(
     @param.path.number('id') id: typeof ProcesoXTarjeta.prototype.id,
-  ): Promise<CodigoDeError> {
-    return this.procesoXTarjetaRepository.codigoDeError(id);
+  ): Promise<CodigoDeParada> {
+    return this.procesoXTarjetaRepository.codigoDeParada(id);
   }
 }

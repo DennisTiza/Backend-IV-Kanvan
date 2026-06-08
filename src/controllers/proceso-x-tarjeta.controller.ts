@@ -192,13 +192,13 @@ export class ProcesoXTarjetaController {
           schema: {
             type: 'object',
             properties: {
-              codigoDeErrorId: {type: 'number'},
+              codigoDeParadaId: {type: 'number'},
             },
           },
         },
       },
     })
-    body: {codigoDeErrorId?: number},
+    body: {codigoDeParadaId?: number},
   ): Promise<ProcesoXTarjeta> {
     const proceso = await this.procesoXTarjetaRepository.findById(id);
     if (!proceso) {
@@ -214,8 +214,8 @@ export class ProcesoXTarjetaController {
     const updateData: Partial<ProcesoXTarjeta> = {
       fechaFinal: new Date().toISOString().replace('T', ' ').replace('Z', ''),
     };
-    if (body.codigoDeErrorId != null) {
-      updateData.codigoDeErrorId = body.codigoDeErrorId;
+    if (body.codigoDeParadaId != null) {
+      updateData.codigoDeParadaId = body.codigoDeParadaId;
     }
 
     await this.procesoXTarjetaRepository.updateById(id, updateData);

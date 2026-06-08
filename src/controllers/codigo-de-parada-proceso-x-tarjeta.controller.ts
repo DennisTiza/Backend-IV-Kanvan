@@ -16,20 +16,20 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {
-  CodigoDeError,
+  CodigoDeParada,
   ProcesoXTarjeta,
 } from '../models';
-import {CodigoDeErrorRepository} from '../repositories';
+import {CodigoDeParadaRepository} from '../repositories';
 
-export class CodigoDeErrorProcesoXTarjetaController {
+export class CodigoDeParadaProcesoXTarjetaController {
   constructor(
-    @repository(CodigoDeErrorRepository) protected codigoDeErrorRepository: CodigoDeErrorRepository,
+    @repository(CodigoDeParadaRepository) protected codigoDeParadaRepository: CodigoDeParadaRepository,
   ) { }
 
-  @get('/codigo-de-errors/{id}/proceso-x-tarjetas', {
+  @get('/codigo-de-paradas/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'Array of CodigoDeError has many ProcesoXTarjeta',
+        description: 'Array of CodigoDeParada has many ProcesoXTarjeta',
         content: {
           'application/json': {
             schema: {type: 'array', items: getModelSchemaRef(ProcesoXTarjeta)},
@@ -42,38 +42,38 @@ export class CodigoDeErrorProcesoXTarjetaController {
     @param.path.number('id') id: number,
     @param.query.object('filter') filter?: Filter<ProcesoXTarjeta>,
   ): Promise<ProcesoXTarjeta[]> {
-    return this.codigoDeErrorRepository.procesoXTarjetas(id).find(filter);
+    return this.codigoDeParadaRepository.procesoXTarjetas(id).find(filter);
   }
 
-  @post('/codigo-de-errors/{id}/proceso-x-tarjetas', {
+  @post('/codigo-de-paradas/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'CodigoDeError model instance',
+        description: 'CodigoDeParada model instance',
         content: {'application/json': {schema: getModelSchemaRef(ProcesoXTarjeta)}},
       },
     },
   })
   async create(
-    @param.path.number('id') id: typeof CodigoDeError.prototype.id,
+    @param.path.number('id') id: typeof CodigoDeParada.prototype.id,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(ProcesoXTarjeta, {
-            title: 'NewProcesoXTarjetaInCodigoDeError',
+            title: 'NewProcesoXTarjetaInCodigoDeParada',
             exclude: ['id'],
-            optional: ['codigoDeErrorId']
+            optional: ['codigoDeParadaId']
           }),
         },
       },
     }) procesoXTarjeta: Omit<ProcesoXTarjeta, 'id'>,
   ): Promise<ProcesoXTarjeta> {
-    return this.codigoDeErrorRepository.procesoXTarjetas(id).create(procesoXTarjeta);
+    return this.codigoDeParadaRepository.procesoXTarjetas(id).create(procesoXTarjeta);
   }
 
-  @patch('/codigo-de-errors/{id}/proceso-x-tarjetas', {
+  @patch('/codigo-de-paradas/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'CodigoDeError.ProcesoXTarjeta PATCH success count',
+        description: 'CodigoDeParada.ProcesoXTarjeta PATCH success count',
         content: {'application/json': {schema: CountSchema}},
       },
     },
@@ -90,13 +90,13 @@ export class CodigoDeErrorProcesoXTarjetaController {
     procesoXTarjeta: Partial<ProcesoXTarjeta>,
     @param.query.object('where', getWhereSchemaFor(ProcesoXTarjeta)) where?: Where<ProcesoXTarjeta>,
   ): Promise<Count> {
-    return this.codigoDeErrorRepository.procesoXTarjetas(id).patch(procesoXTarjeta, where);
+    return this.codigoDeParadaRepository.procesoXTarjetas(id).patch(procesoXTarjeta, where);
   }
 
-  @del('/codigo-de-errors/{id}/proceso-x-tarjetas', {
+  @del('/codigo-de-paradas/{id}/proceso-x-tarjetas', {
     responses: {
       '200': {
-        description: 'CodigoDeError.ProcesoXTarjeta DELETE success count',
+        description: 'CodigoDeParada.ProcesoXTarjeta DELETE success count',
         content: {'application/json': {schema: CountSchema}},
       },
     },
@@ -105,6 +105,6 @@ export class CodigoDeErrorProcesoXTarjetaController {
     @param.path.number('id') id: number,
     @param.query.object('where', getWhereSchemaFor(ProcesoXTarjeta)) where?: Where<ProcesoXTarjeta>,
   ): Promise<Count> {
-    return this.codigoDeErrorRepository.procesoXTarjetas(id).delete(where);
+    return this.codigoDeParadaRepository.procesoXTarjetas(id).delete(where);
   }
 }
