@@ -11,3 +11,4 @@ export * from './rol.repository';
 export * from './tarjeta-de-produccion.repository';
 export * from './usuario.repository';
 
+export * from './operario-x-proceso-x-tarjeta.repository';

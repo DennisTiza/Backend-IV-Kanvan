@@ -1,8 +1,8 @@
 import {Getter, inject} from '@loopback/core';
 import {DefaultCrudRepository, HasManyRepositoryFactory, repository} from '@loopback/repository';
 import {MysqlDataSource} from '../datasources';
-import {Operario, OperarioRelations, ProcesoXTarjeta} from '../models';
-import {ProcesoXTarjetaRepository} from './proceso-x-tarjeta.repository';
+import {Operario, OperarioRelations, OperarioXProcesoXTarjeta} from '../models';
+import {OperarioXProcesoXTarjetaRepository} from './operario-x-proceso-x-tarjeta.repository';
 
 export class OperarioRepository extends DefaultCrudRepository<
   Operario,
@@ -10,13 +10,13 @@ export class OperarioRepository extends DefaultCrudRepository<
   OperarioRelations
 > {
 
-  public readonly procesoXTarjetas: HasManyRepositoryFactory<ProcesoXTarjeta, typeof Operario.prototype.id>;
+  public readonly operarioXProcesoXTarjetas: HasManyRepositoryFactory<OperarioXProcesoXTarjeta, typeof Operario.prototype.id>;
 
   constructor(
-    @inject('datasources.mysql') dataSource: MysqlDataSource, @repository.getter('ProcesoXTarjetaRepository') protected procesoXTarjetaRepositoryGetter: Getter<ProcesoXTarjetaRepository>,
+    @inject('datasources.mysql') dataSource: MysqlDataSource, @repository.getter('OperarioXProcesoXTarjetaRepository') protected operarioXProcesoXTarjetaRepositoryGetter: Getter<OperarioXProcesoXTarjetaRepository>,
   ) {
     super(Operario, dataSource);
-    this.procesoXTarjetas = this.createHasManyRepositoryFactoryFor('procesoXTarjetas', procesoXTarjetaRepositoryGetter,);
-    this.registerInclusionResolver('procesoXTarjetas', this.procesoXTarjetas.inclusionResolver);
+    this.operarioXProcesoXTarjetas = this.createHasManyRepositoryFactoryFor('operarioXProcesoXTarjetas', operarioXProcesoXTarjetaRepositoryGetter,);
+    this.registerInclusionResolver('operarioXProcesoXTarjetas', this.operarioXProcesoXTarjetas.inclusionResolver);
   }
 }

@@ -30,6 +30,12 @@ export class TarjetaDeProduccion extends Entity {
   fechaPlaneada: Date;
 
   @property({
+    type: 'date',
+    required: true,
+  })
+  fechaEntrega: Date;
+
+  @property({
     type: 'string',
     mysql: {
       dataType: 'datetime',

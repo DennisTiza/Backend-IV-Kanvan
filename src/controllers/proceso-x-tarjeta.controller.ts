@@ -10,16 +10,16 @@ import {
   del,
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   patch,
   post,
   put,
   requestBody,
   response,
-  HttpErrors,
 } from '@loopback/rest';
-import {ProcesoXTarjeta, TarjetaDeProduccion} from '../models';
-import {ProcesoXTarjetaRepository, TarjetaDeProduccionRepository} from '../repositories';
+import {ProcesoOperarios, ProcesoXTarjeta} from '../models';
+import {OperarioXProcesoXTarjetaRepository, ProcesoXTarjetaRepository, TarjetaDeProduccionRepository} from '../repositories';
 
 export class ProcesoXTarjetaController {
   constructor(
@@ -27,6 +27,8 @@ export class ProcesoXTarjetaController {
     public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
     @repository(TarjetaDeProduccionRepository)
     public tarjetaDeProduccionRepository: TarjetaDeProduccionRepository,
+    @repository(OperarioXProcesoXTarjetaRepository)
+    public operarioXProcesoXTarjetaRepository: OperarioXProcesoXTarjetaRepository,
   ) { }
 
   @post('/proceso-x-tarjeta')
@@ -38,16 +40,27 @@ export class ProcesoXTarjetaController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(ProcesoXTarjeta, {
-            title: 'NewProcesoXTarjeta',
+          schema: getModelSchemaRef(ProcesoOperarios, {
+            title: 'NewProcesoOperarios',
             exclude: ['id'],
           }),
         },
       },
     })
-    procesoXTarjeta: Omit<ProcesoXTarjeta, 'id'>,
+    body: Omit<ProcesoOperarios, 'id'>,
   ): Promise<ProcesoXTarjeta> {
-    return this.procesoXTarjetaRepository.create(procesoXTarjeta);
+    const {operariosIds, ...procesoXTarjeta} = body;
+    const nuevoProceso = await this.procesoXTarjetaRepository.create(procesoXTarjeta);
+
+    if (operariosIds && operariosIds.length > 0) {
+      for (const operarioId of operariosIds) {
+        await this.operarioXProcesoXTarjetaRepository.create({
+          operarioId,
+          procesoXTarjetaId: nuevoProceso.id,
+        });
+      }
+    }
+    return nuevoProceso;
   }
 
   @get('/proceso-x-tarjeta/count')
@@ -246,13 +259,26 @@ export class ProcesoXTarjetaController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(ProcesoXTarjeta, {partial: true}),
+          schema: getModelSchemaRef(ProcesoOperarios, {partial: true}),
         },
       },
     })
-    procesoXTarjeta: ProcesoXTarjeta,
+    body: Partial<ProcesoOperarios>,
   ): Promise<void> {
+    const {operariosIds, ...procesoXTarjeta} = body;
     await this.procesoXTarjetaRepository.updateById(id, procesoXTarjeta);
+
+    if (operariosIds !== undefined) {
+      await this.operarioXProcesoXTarjetaRepository.deleteAll({procesoXTarjetaId: id});
+      if (operariosIds.length > 0) {
+        for (const operarioId of operariosIds) {
+          await this.operarioXProcesoXTarjetaRepository.create({
+            operarioId,
+            procesoXTarjetaId: id,
+          });
+        }
+      }
+    }
   }
 
   @put('/proceso-x-tarjeta/{id}')

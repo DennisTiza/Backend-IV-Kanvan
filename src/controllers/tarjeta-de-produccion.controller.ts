@@ -17,7 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {ProcesoXTarjeta, TarjetaDeProduccion} from '../models';
+import {TarjetaDeProduccion} from '../models';
 import {ProcesoXTarjetaRepository, ProductoXProcesoRepository, TarjetaDeProduccionRepository} from '../repositories';
 
 export class TarjetaDeProduccionController {
@@ -61,14 +61,6 @@ export class TarjetaDeProduccionController {
         where: {productoId: tarjeta.productoId},
         order: ['orden ASC'],
       });
-
-      for (const pp of procesosDeProducto) {
-        await this.procesoXTarjetaRepository.create({
-          procesoId: pp.procesoId,
-          tarjetaDeProduccionId: tarjeta.id,
-          orden: pp.orden,
-        } as ProcesoXTarjeta);
-      }
     }
 
     console.log('Tarjeta de producción creada con ID:', tarjeta);
