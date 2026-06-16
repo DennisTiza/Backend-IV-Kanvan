@@ -1,5 +1,6 @@
 export * from './codigo-de-parada.repository';
 export * from './login.repository';
+export * from './parada.repository';
 export * from './menu-del-rol.repository';
 export * from './menu.repository';
 export * from './operario.repository';

@@ -6,6 +6,7 @@ export * from './menu-del-rol.model';
 export * from './menu.model';
 export * from './operario-x-proceso-x-tarjeta.model';
 export * from './operario.model';
+export * from './parada.model';
 export * from './proceso-operarios.model';
 export * from './proceso-x-tarjeta.model';
 export * from './proceso.model';
