@@ -1,5 +1,6 @@
 import {Entity, hasMany, model, property} from '@loopback/repository';
 import {OperarioXProcesoXTarjeta} from './operario-x-proceso-x-tarjeta.model';
+import {RegistroDeCantidad} from './registro-de-cantidad.model';
 
 @model()
 export class Operario extends Entity {
@@ -24,6 +25,9 @@ export class Operario extends Entity {
 
   @hasMany(() => OperarioXProcesoXTarjeta)
   operarioXProcesoXTarjetas: OperarioXProcesoXTarjeta[];
+
+  @hasMany(() => RegistroDeCantidad)
+  registroDeCantidads: RegistroDeCantidad[];
 
   constructor(data?: Partial<Operario>) {
     super(data);

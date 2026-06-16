@@ -1,7 +1,14 @@
-import {belongsTo, Entity, hasMany, model, property} from '@loopback/repository';
+import {
+  belongsTo,
+  Entity,
+  hasMany,
+  model,
+  property,
+} from '@loopback/repository';
 import {OperarioXProcesoXTarjeta} from './operario-x-proceso-x-tarjeta.model';
 import {Parada} from './parada.model';
 import {Proceso} from './proceso.model';
+import {RegistroDeCantidad} from './registro-de-cantidad.model';
 import {TarjetaDeProduccion} from './tarjeta-de-produccion.model';
 
 @model()
@@ -73,6 +80,9 @@ export class ProcesoXTarjeta extends Entity {
   @hasMany(() => Parada)
   paradas: Parada[];
 
+  @hasMany(() => RegistroDeCantidad)
+  registroDeCantidads: RegistroDeCantidad[];
+
   constructor(data?: Partial<ProcesoXTarjeta>) {
     super(data);
   }
@@ -82,4 +92,5 @@ export interface ProcesoXTarjetaRelations {
   // describe navigational properties here
 }
 
-export type ProcesoXTarjetaWithRelations = ProcesoXTarjeta & ProcesoXTarjetaRelations;
+export type ProcesoXTarjetaWithRelations = ProcesoXTarjeta &
+  ProcesoXTarjetaRelations;

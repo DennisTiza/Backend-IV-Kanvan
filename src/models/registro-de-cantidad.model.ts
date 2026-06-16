@@ -4,7 +4,7 @@ import {Operario} from './operario.model';
 import {ProcesoXTarjeta} from './proceso-x-tarjeta.model';
 
 @model()
-export class Parada extends Entity {
+export class RegistroDeCantidad extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -16,7 +16,13 @@ export class Parada extends Entity {
     type: 'number',
     required: true,
   })
-  cantidadReportada: number;
+  cantidad: number;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  tipo: string;
 
   @property({
     type: 'string',
@@ -29,19 +35,20 @@ export class Parada extends Entity {
   @belongsTo(() => ProcesoXTarjeta)
   procesoXTarjetaId: number;
 
-  @belongsTo(() => CodigoDeParada)
-  codigoDeParadaId: number;
-
   @belongsTo(() => Operario)
   operarioId: number;
 
-  constructor(data?: Partial<Parada>) {
+  @belongsTo(() => CodigoDeParada)
+  codigoDeParadaId: number;
+
+  constructor(data?: Partial<RegistroDeCantidad>) {
     super(data);
   }
 }
 
-export interface ParadaRelations {
+export interface RegistroDeCantidadRelations {
   // describe navigational properties here
 }
 
-export type ParadaWithRelations = Parada & ParadaRelations;
+export type RegistroDeCantidadWithRelations = RegistroDeCantidad &
+  RegistroDeCantidadRelations;

@@ -18,8 +18,19 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Parada, ProcesoOperarios, ProcesoXTarjeta} from '../models';
-import {OperarioXProcesoXTarjetaRepository, ParadaRepository, ProcesoXTarjetaRepository, TarjetaDeProduccionRepository} from '../repositories';
+import {
+  Parada,
+  ProcesoOperarios,
+  ProcesoXTarjeta,
+  RegistroDeCantidad,
+} from '../models';
+import {
+  OperarioXProcesoXTarjetaRepository,
+  ParadaRepository,
+  ProcesoXTarjetaRepository,
+  RegistroDeCantidadRepository,
+  TarjetaDeProduccionRepository,
+} from '../repositories';
 
 export class ProcesoXTarjetaController {
   constructor(
@@ -31,7 +42,9 @@ export class ProcesoXTarjetaController {
     public operarioXProcesoXTarjetaRepository: OperarioXProcesoXTarjetaRepository,
     @repository(ParadaRepository)
     public paradaRepository: ParadaRepository,
-  ) { }
+    @repository(RegistroDeCantidadRepository)
+    public registroDeCantidadRepository: RegistroDeCantidadRepository,
+  ) {}
 
   @post('/proceso-x-tarjeta')
   @response(200, {
@@ -53,14 +66,18 @@ export class ProcesoXTarjetaController {
   ): Promise<ProcesoXTarjeta> {
     const {operariosIds, ...procesoXTarjeta} = body;
 
-    if (procesoXTarjeta.cantidad == null && procesoXTarjeta.tarjetaDeProduccionId) {
+    if (
+      procesoXTarjeta.cantidad == null &&
+      procesoXTarjeta.tarjetaDeProduccionId
+    ) {
       const tarjeta = await this.tarjetaDeProduccionRepository.findById(
-        procesoXTarjeta.tarjetaDeProduccionId
+        procesoXTarjeta.tarjetaDeProduccionId,
       );
       procesoXTarjeta.cantidad = tarjeta.cantidad;
     }
 
-    const nuevoProceso = await this.procesoXTarjetaRepository.create(procesoXTarjeta);
+    const nuevoProceso =
+      await this.procesoXTarjetaRepository.create(procesoXTarjeta);
 
     if (operariosIds && operariosIds.length > 0) {
       for (const operarioId of operariosIds) {
@@ -149,9 +166,7 @@ export class ProcesoXTarjetaController {
     description: 'ProcesoXTarjeta iniciado',
     content: {'application/json': {schema: getModelSchemaRef(ProcesoXTarjeta)}},
   })
-  async iniciar(
-    @param.path.number('id') id: number,
-  ): Promise<ProcesoXTarjeta> {
+  async iniciar(@param.path.number('id') id: number): Promise<ProcesoXTarjeta> {
     const proceso = await this.procesoXTarjetaRepository.findById(id);
     if (!proceso) {
       throw new HttpErrors.NotFound('Proceso no encontrado');
@@ -189,19 +204,23 @@ export class ProcesoXTarjetaController {
             type: 'object',
             properties: {
               cantidadReportada: {type: 'number'},
+              operarioId: {type: 'number'},
             },
           },
         },
       },
       required: false,
     })
-    body?: {cantidadReportada?: number},
+    body?: {cantidadReportada?: number; operarioId?: number},
   ): Promise<ProcesoXTarjeta> {
     const proceso = await this.procesoXTarjetaRepository.findById(id);
     if (!proceso) {
       throw new HttpErrors.NotFound('Proceso no encontrado');
     }
-    if (!proceso.fechaInicio && (!proceso.cantidadRegistrada || proceso.cantidadRegistrada <= 0)) {
+    if (
+      !proceso.fechaInicio &&
+      (!proceso.cantidadRegistrada || proceso.cantidadRegistrada <= 0)
+    ) {
       throw new HttpErrors.Conflict('El proceso no ha sido iniciado');
     }
     if (proceso.fechaFinal) {
@@ -210,12 +229,23 @@ export class ProcesoXTarjetaController {
 
     const ahora = new Date();
     const ahoraStr = ahora.toISOString().replace('T', ' ').replace('Z', '');
-    const updateData: {fechaFinal: string; cantidadRealizada?: number; cantidadRegistrada?: number; tiempoConsumido?: number} = {
+    const updateData: {
+      fechaFinal: string;
+      cantidadRealizada?: number;
+      cantidadRegistrada?: number;
+      tiempoConsumido?: number;
+    } = {
       fechaFinal: ahoraStr,
     };
 
     if (body?.cantidadReportada !== undefined) {
-      const nuevaCantidadRegistrada = (proceso.cantidadRegistrada || 0) + body.cantidadReportada;
+      if (!body.operarioId) {
+        throw new HttpErrors.UnprocessableEntity(
+          'operarioId es requerido cuando se reporta cantidad',
+        );
+      }
+      const nuevaCantidadRegistrada =
+        (proceso.cantidadRegistrada || 0) + body.cantidadReportada;
       if (nuevaCantidadRegistrada > proceso.cantidad) {
         throw new HttpErrors.UnprocessableEntity(
           'La cantidad reportada supera la cantidad total del proceso',
@@ -228,8 +258,17 @@ export class ProcesoXTarjetaController {
         const duracionSesion = Math.floor(
           (ahora.getTime() - new Date(proceso.fechaInicio).getTime()) / 1000,
         );
-        updateData.tiempoConsumido = (proceso.tiempoConsumido || 0) + duracionSesion;
+        updateData.tiempoConsumido =
+          (proceso.tiempoConsumido || 0) + duracionSesion;
       }
+
+      await this.registroDeCantidadRepository.create({
+        procesoXTarjetaId: id,
+        operarioId: body.operarioId,
+        cantidad: body.cantidadReportada,
+        tipo: 'produccion',
+        fecha: ahoraStr,
+      });
     }
 
     await this.procesoXTarjetaRepository.updateById(id, updateData);
@@ -238,7 +277,7 @@ export class ProcesoXTarjetaController {
       where: {tarjetaDeProduccionId: proceso.tarjetaDeProduccionId},
     });
     const todosCompletos = todos.every(
-      p => p.cantidadRegistrada === p.cantidad
+      p => p.cantidadRegistrada === p.cantidad,
     );
     if (todosCompletos) {
       await this.tarjetaDeProduccionRepository.updateById(
@@ -265,13 +304,18 @@ export class ProcesoXTarjetaController {
             properties: {
               cantidadReportada: {type: 'number'},
               codigoDeParadaId: {type: 'number'},
+              operarioId: {type: 'number'},
             },
-            required: ['cantidadReportada', 'codigoDeParadaId'],
+            required: ['cantidadReportada', 'codigoDeParadaId', 'operarioId'],
           },
         },
       },
     })
-    body: {cantidadReportada: number; codigoDeParadaId: number},
+    body: {
+      cantidadReportada: number;
+      codigoDeParadaId: number;
+      operarioId: number;
+    },
   ): Promise<ProcesoXTarjeta> {
     const proceso = await this.procesoXTarjetaRepository.findById(id);
     if (!proceso) {
@@ -284,7 +328,8 @@ export class ProcesoXTarjetaController {
       throw new HttpErrors.Conflict('El proceso ya fue finalizado');
     }
 
-    const nuevaCantidadRegistrada = (proceso.cantidadRegistrada || 0) + body.cantidadReportada;
+    const nuevaCantidadRegistrada =
+      (proceso.cantidadRegistrada || 0) + body.cantidadReportada;
     if (nuevaCantidadRegistrada > proceso.cantidad) {
       throw new HttpErrors.UnprocessableEntity(
         'La cantidad reportada supera la cantidad total del proceso',
@@ -298,6 +343,16 @@ export class ProcesoXTarjetaController {
       procesoXTarjetaId: id,
       codigoDeParadaId: body.codigoDeParadaId,
       cantidadReportada: body.cantidadReportada,
+      operarioId: body.operarioId,
+      fecha: ahoraStr,
+    });
+
+    await this.registroDeCantidadRepository.create({
+      procesoXTarjetaId: id,
+      operarioId: body.operarioId,
+      cantidad: body.cantidadReportada,
+      tipo: 'parada',
+      codigoDeParadaId: body.codigoDeParadaId,
       fecha: ahoraStr,
     });
 
@@ -321,6 +376,28 @@ export class ProcesoXTarjetaController {
     return this.procesoXTarjetaRepository.findById(id);
   }
 
+  @get('/proceso-x-tarjeta/{id}/registros-cantidad')
+  @response(200, {
+    description: 'Array de RegistroDeCantidad del proceso',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(RegistroDeCantidad),
+        },
+      },
+    },
+  })
+  async getRegistrosCantidad(
+    @param.path.number('id') id: number,
+  ): Promise<RegistroDeCantidad[]> {
+    return this.registroDeCantidadRepository.find({
+      where: {procesoXTarjetaId: id},
+      order: ['fecha ASC'],
+      include: ['operario', 'codigoDeParada'],
+    });
+  }
+
   @get('/proceso-x-tarjeta/{id}/paradas')
   @response(200, {
     description: 'Array de Parada del proceso',
@@ -333,13 +410,11 @@ export class ProcesoXTarjetaController {
       },
     },
   })
-  async getParadas(
-    @param.path.number('id') id: number,
-  ): Promise<Parada[]> {
+  async getParadas(@param.path.number('id') id: number): Promise<Parada[]> {
     return this.paradaRepository.find({
       where: {procesoXTarjetaId: id},
       order: ['fecha ASC'],
-      include: ['codigoDeParada'],
+      include: ['codigoDeParada', 'operario'],
     });
   }
 
@@ -354,7 +429,8 @@ export class ProcesoXTarjetaController {
   })
   async findById(
     @param.path.number('id') id: number,
-    @param.filter(ProcesoXTarjeta, {exclude: 'where'}) filter?: FilterExcludingWhere<ProcesoXTarjeta>
+    @param.filter(ProcesoXTarjeta, {exclude: 'where'})
+    filter?: FilterExcludingWhere<ProcesoXTarjeta>,
   ): Promise<ProcesoXTarjeta> {
     return this.procesoXTarjetaRepository.findById(id, filter);
   }
@@ -378,7 +454,9 @@ export class ProcesoXTarjetaController {
     await this.procesoXTarjetaRepository.updateById(id, procesoXTarjeta);
 
     if (operariosIds !== undefined) {
-      await this.operarioXProcesoXTarjetaRepository.deleteAll({procesoXTarjetaId: id});
+      await this.operarioXProcesoXTarjetaRepository.deleteAll({
+        procesoXTarjetaId: id,
+      });
       if (operariosIds.length > 0) {
         for (const operarioId of operariosIds) {
           await this.operarioXProcesoXTarjetaRepository.create({

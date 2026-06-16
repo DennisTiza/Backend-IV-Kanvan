@@ -9,6 +9,7 @@ export * from './operario.model';
 export * from './parada.model';
 export * from './proceso-operarios.model';
 export * from './proceso-x-tarjeta.model';
+export * from './registro-de-cantidad.model';
 export * from './proceso.model';
 export * from './producto-x-proceso.model';
 export * from './producto.model';
