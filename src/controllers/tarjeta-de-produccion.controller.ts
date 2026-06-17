@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {TarjetaDeProduccion} from '../models';
-import {ProcesoXTarjetaRepository, ProductoXProcesoRepository, TarjetaDeProduccionRepository} from '../repositories';
+import {ProcesoOperarios, TarjetaDeProduccion} from '../models';
+import {OperarioXProcesoXTarjetaRepository, ProcesoXTarjetaRepository, ProductoXProcesoRepository, TarjetaDeProduccionRepository} from '../repositories';
 
 export class TarjetaDeProduccionController {
   constructor(
@@ -28,6 +28,8 @@ export class TarjetaDeProduccionController {
     public productoXProcesoRepository: ProductoXProcesoRepository,
     @repository(ProcesoXTarjetaRepository)
     public procesoXTarjetaRepository: ProcesoXTarjetaRepository,
+    @repository(OperarioXProcesoXTarjetaRepository)
+    public operarioXProcesoXTarjetaRepository: OperarioXProcesoXTarjetaRepository,
   ) { }
 
   @post('/tarjeta-de-produccion')
@@ -49,7 +51,6 @@ export class TarjetaDeProduccionController {
     tarjetaDeProduccion: Omit<TarjetaDeProduccion, 'id'>,
   ): Promise<TarjetaDeProduccion> {
 
-    // Ignora cualquier estado que envíe el cliente
     tarjetaDeProduccion.estado = 'por_hacer';
 
     const tarjeta = await this.tarjetaDeProduccionRepository.create(
@@ -61,9 +62,18 @@ export class TarjetaDeProduccionController {
         where: {productoId: tarjeta.productoId},
         order: ['orden ASC'],
       });
+      for (const pp of procesosDeProducto) {
+        await this.procesoXTarjetaRepository.create({
+          procesoId: pp.procesoId,
+          tarjetaDeProduccionId: tarjeta.id,
+          orden: pp.orden,
+          cantidad: tarjeta.cantidad,
+          cantidadRealizada: 0,
+          cantidadRegistrada: 0,
+        } as ProcesoOperarios);
+      }
     }
 
-    console.log('Tarjeta de producción creada con ID:', tarjeta);
     return tarjeta;
   }
 

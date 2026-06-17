@@ -1,4 +1,4 @@
-export * from './codigo-de-parada-proceso-x-tarjeta.controller';
+export * from './codigo-de-parada-parada.controller';
 export * from './codigo-de-parada.controller';
 export * from './operario-operario-x-proceso-x-tarjeta.controller';
 export * from './operario-x-proceso-x-tarjeta-operario.controller';
@@ -8,8 +8,8 @@ export * from './operario.controller';
 export * from './ping.controller';
 export * from './proceso-proceso-x-tarjeta.controller';
 export * from './proceso-producto-x-proceso.controller';
-export * from './proceso-x-tarjeta-codigo-de-parada.controller';
 export * from './proceso-x-tarjeta-operario-x-proceso-x-tarjeta.controller';
+export * from './proceso-x-tarjeta-parada.controller';
 export * from './proceso-x-tarjeta-proceso.controller';
 export * from './proceso-x-tarjeta-tarjeta-de-produccion.controller';
 export * from './proceso-x-tarjeta.controller';

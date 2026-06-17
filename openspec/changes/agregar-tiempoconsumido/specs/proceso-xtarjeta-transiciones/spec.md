@@ -1,39 +1,13 @@
-## Requirements
-
-### Requirement: Iniciar proceso atómicamente
-El sistema DEBE exponer `POST /proceso-x-tarjeta/{id}/iniciar` que establece `fechaInicio` a la fecha/hora actual en formato compatible con MySQL DATETIME (`YYYY-MM-DD HH:mm:ss`). Si el proceso ya fue iniciado previamente (tiene `fechaInicio`) pero no está completo (`cantidadRegistrada < cantidad`), DEBE permitir reiniciarlo actualizando `fechaInicio`.
-
-#### Scenario: Iniciar proceso pendiente exitosamente
-- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/iniciar` para un proceso con `fechaInicio = null`
-- **AND** el proceso no está completo (`cantidadRegistrada < cantidad`)
-- **THEN** el sistema DEBE establecer `fechaInicio` a la fecha/hora actual en formato `YYYY-MM-DD HH:mm:ss`
-- **AND** DEBE retornar el `ProcesoXTarjeta` actualizado con código 200
-
-#### Scenario: Reiniciar proceso con paradas
-- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/iniciar` para un proceso con `fechaInicio` seteada, sin `fechaFinal`, y con `cantidadRegistrada < cantidad`
-- **THEN** el sistema DEBE actualizar `fechaInicio` a la fecha/hora actual
-- **AND** DEBE retornar el `ProcesoXTarjeta` actualizado con código 200
-
-#### Scenario: Iniciar proceso que ya está completo
-- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/iniciar` para un proceso con `cantidadRegistrada == cantidad`
-- **THEN** el sistema DEBE retornar error 409 Conflict
-
-#### Scenario: Iniciar primer proceso actualiza tarjeta a en_proceso
-- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/iniciar` para el proceso con `orden = 1`
-- **THEN** el sistema DEBE establecer `TarjetaDeProduccion.estado = 'en_proceso'`
-
-#### Scenario: Iniciar proceso con ID inexistente
-- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/iniciar` con un `id` que no existe
-- **THEN** el sistema DEBE retornar error 404 Not Found
+## MODIFIED Requirements
 
 ### Requirement: Finalizar proceso atómicamente
-El sistema DEBE exponer `POST /proceso-x-tarjeta/{id}/finalizar` que acepta un body opcional `{ cantidadReportada: number }`. Cuando se invoca, DEBE establecer `fechaFinal` a la fecha/hora actual en formato compatible con MySQL DATETIME (`YYYY-MM-DD HH:mm:ss`). Si el body incluye `cantidadReportada`, DEBE actualizar `cantidadRealizada = cantidadReportada` y sumar `cantidadReportada` a `cantidadRegistrada`, siempre que `cantidadRegistrada + cantidadReportada <= cantidad`. Si no se provee `cantidadReportada`, NO DEBE modificar `cantidadRealizada` ni `cantidadRegistrada`. La tarjeta DEBE pasar a `finalizada` solo cuando TODOS los procesos de la tarjeta tengan `cantidadRegistrada == cantidad`.
+El sistema DEBE exponer `POST /proceso-x-tarjeta/{id}/finalizar` que acepta un body opcional `{ cantidadReportada: number }`. Cuando se invoca, DEBE establecer `fechaFinal` a la fecha/hora actual en formato compatible con MySQL DATETIME (`YYYY-MM-DD HH:mm:ss`). Si el body incluye `cantidadReportada`, DEBE actualizar `cantidadRealizada = cantidadReportada` y sumar `cantidadReportada` a `cantidadRegistrada`, siempre que `cantidadRegistrada + cantidadReportada <= cantidad`. Si además el proceso está activo (`fechaInicio != null`), DEBE calcular `duracionSesion = (ahora - fechaInicio) / 1000` y acumularlo en `tiempoConsumido`. Si el proceso está en pausa (`fechaInicio == null` con `cantidadRegistrada > 0`), DEBE permitir finalizar sin acumular tiempo de sesión. Si no se provee `cantidadReportada`, NO DEBE modificar `cantidadRealizada` ni `cantidadRegistrada` ni `tiempoConsumido`. La tarjeta DEBE pasar a `finalizada` solo cuando TODOS los procesos de la tarjeta tengan `cantidadRegistrada == cantidad`.
 
 #### Scenario: Finalizar proceso en ejecución exitosamente (sin cantidadReportada)
 - **WHEN** se envía `POST /proceso-x-tarjeta/{id}/finalizar` para un proceso con `fechaInicio` seteada y `fechaFinal = null`
 - **AND** el body NO incluye `cantidadReportada`
 - **THEN** el sistema DEBE establecer `fechaFinal` a la fecha/hora actual en formato `YYYY-MM-DD HH:mm:ss`
-- **AND** NO DEBE modificar `cantidadRealizada` ni `cantidadRegistrada`
+- **AND** NO DEBE modificar `cantidadRealizada`, `cantidadRegistrada` ni `tiempoConsumido`
 - **AND** DEBE retornar el `ProcesoXTarjeta` actualizado con código 200
 
 #### Scenario: Finalizar proceso en ejecución con cantidadReportada
@@ -42,13 +16,14 @@ El sistema DEBE exponer `POST /proceso-x-tarjeta/{id}/finalizar` que acepta un b
 - **THEN** el sistema DEBE establecer `fechaFinal` a la fecha/hora actual
 - **AND** DEBE establecer `cantidadRealizada = 40`
 - **AND** DEBE sumar 40 a `cantidadRegistrada`
+- **AND** DEBE acumular la duración de la sesión en `tiempoConsumido`
 - **AND** DEBE retornar el `ProcesoXTarjeta` actualizado con código 200
 
 #### Scenario: Finalizar proceso con cantidadReportada que excede el total
 - **WHEN** se envía `POST /proceso-x-tarjeta/{id}/finalizar` para un proceso con `cantidad = 100` y `cantidadRegistrada = 80`
 - **AND** el body incluye `{ cantidadReportada: 30 }`
 - **THEN** el sistema DEBE retornar error 422 Unprocessable Entity
-- **AND** NO DEBE modificar `fechaFinal`, `cantidadRealizada` ni `cantidadRegistrada`
+- **AND** NO DEBE modificar `fechaFinal`, `cantidadRealizada`, `cantidadRegistrada` ni `tiempoConsumido`
 
 #### Scenario: Finalizar proceso con parada registrada y sin cantidadReportada
 - **WHEN** se envía `POST /proceso-x-tarjeta/{id}/finalizar` para un proceso que tiene paradas registradas
@@ -58,8 +33,16 @@ El sistema DEBE exponer `POST /proceso-x-tarjeta/{id}/finalizar` que acepta un b
 - **AND** `cantidadRegistrada` NO DEBE modificarse (queda como estaba)
 - **AND** el proceso queda finalizado con la cantidad parcial
 
+#### Scenario: Finalizar proceso en pausa con cantidadReportada
+- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/finalizar` para un proceso con `fechaInicio = null` y `cantidadRegistrada > 0`
+- **AND** el body incluye `{ cantidadReportada: 10 }`
+- **THEN** el sistema DEBE establecer `fechaFinal`
+- **AND** DEBE actualizar cantidades
+- **AND** NO DEBE acumular tiempo de sesión (no hay sesión activa)
+- **AND** DEBE retornar el `ProcesoXTarjeta` actualizado con código 200
+
 #### Scenario: Finalizar proceso no iniciado
-- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/finalizar` para un proceso con `fechaInicio = null`
+- **WHEN** se envía `POST /proceso-x-tarjeta/{id}/finalizar` para un proceso con `fechaInicio = null` y `cantidadRegistrada = 0`
 - **THEN** el sistema DEBE retornar error 409 Conflict
 
 #### Scenario: Finalizar proceso ya finalizado
